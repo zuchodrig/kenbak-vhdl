@@ -1,0 +1,52 @@
+ --------An--><------An            ][ An+1 
+             ^
+ --------[A+ pd].....
+        *	     
+ CP_____/~~~~~~~~~~~~~~~~~~~~~~~~\_____________/~~~
+
+~WE ____/~~~~~~~~~~~~~~~~~~~~~~~~\_____________/~~~
+    
+~CE 0____
+
+~OE ~~~~~~\______________/~~~~~~~~~~~~~~~~~~~~~~\___
+
+D   <DI-->- Z--<mem[n->n+1]-> - - - -
+
+~Z   ~~~\_______________________/~~~~~~~~~~~~~~\
+
+T1______.________/~~~~~~~~~~~~~~~~~~~~\_______
+        * data in latched, to write to mem at An
+                 * data An+1 to be latched as out
+T1 <= CP + 80 ns (RC+shmitt) 
+ or 
+T1 <= T1- triggered 74123 @80 ns
+C2 <= T1;
+~OE : T1 triggered 74123, @ >80+77 ns
+~z < not CP;
+~WE = CP;
+
+nxp: 74HC123-Q100
+74hc123 Pd = 77 ns? 74ahc123 -  15ns
+Tc/2 > 157 ns => F < 3mhz
+
+~OE to C2 latch: 12ns access time + 74hc74 Tsu 18 ns + [A+ pd]
+A+ pd:CP to QN 74hc161 57 ns ;  total 87ns
+
+
+AC: 74ac74 3ns + (74ac161 CP->QN 15 ns) + (12ns acc.time) =>  30ns
+(74fct163) 6 ns
+
+with 74ac tc/2 > 45 ns => f<11 mhz
+
+
+    +---[ct]=>An*
+    |
+    |           Z
+    |           |
+DI ---- [d o]-- > -+- [D  An]=*
+    +---[c  ]      .  [WE   ]
+ CP-+              .  [CE   ]
+    |              .  [OE   ]
+    |              .        
+    +--------------+--[D o] ------ Do
+                 C2---[C

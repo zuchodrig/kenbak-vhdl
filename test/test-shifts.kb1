@@ -1,0 +1,175 @@
+.org 4
+
+ld [OUTPUT], a
+
+; shifts
+ld a, $cc
+sftl a, 1
+sub a, $98
+jpnz a, failed
+
+ld a, $cc
+sftl a, 2
+sub a, $30
+jpnz a, failed
+
+ld a, $cc
+sftl a, 4
+sub a, $c0
+jpnz a, failed
+
+
+ld a, $cc
+sftr a, 1
+sub a, $E6
+jpnz a, failed
+
+ld a, $cc
+sftr a, 2
+sub a, $F3
+jpnz a, failed
+
+ld a, $cc
+sftr a, 4
+sub a, $FC
+jpnz a, failed
+
+ld b, $cc
+sftr b, 1
+sub b, $E6
+jpnz b, failed
+
+; bit skip test
+ld a, $37
+skip1 0, [A_REG]
+jp failed
+
+skip1 2, [A_REG]
+jp failed
+
+skip0 3, [A_REG]
+jp failed
+
+skip0 6, [A_REG]
+jp failed
+
+; bit set test
+ld a, 0
+set1 0, [A_REG]
+set1 1, [A_REG]
+set1 2, [A_REG]
+set1 5, [A_REG]
+set1 7, [A_REG]
+sub a, %10100111
+jpnz a, failed
+
+ld a, $CC
+set0 7, [A_REG]
+set0 6, [A_REG]
+sub a, $0C
+jpnz a, failed
+
+
+; logic ops
+ld a, $CE
+and $67
+sub a, $46
+jpnz a, failed
+
+ld a, $CE
+or $67
+sub a, $EF
+jpnz a, failed
+
+lneg $67
+sub a, $99
+jpnz a, failed
+
+jp upper_half_jmp
+
+; jump over reg_flags
+.org $85
+upper_half_jmp:
+
+; arithmetics
+ld b, $CC
+add b, $B0
+skip1 1, [B_REG_F] ; expecting carry=1
+jp failed
+sub b, $7C
+jmnz b, failed
+
+ld b, $40
+add b, $41
+skip1 0, [B_REG_F] ; expecting overflow
+jm failed
+
+ld a, [byte1]
+sub a, $77
+jmnz a, failed
+
+ld a, [[byte2]]
+sub a, $77
+jmnz a, failed
+
+ld x, 3
+ld a, [x+byte1]
+sub a, $A7
+jmnz a, failed
+
+; instruction unsing indirect indexing mode, [x+[byte2]], can't be compiled using stock bespokeasm 
+; replace with two .byte instructions below
+ld a, [x+[byte2]]
+;.byte 0x17
+;.byte byte2
+
+
+sub a, $A7
+jmnz a, failed
+
+
+; rotates
+ld a, $CC
+rotr a, 1
+sub a, $66
+jpnz a, failed
+
+ld a, $CC
+rotr a, 2
+sub a, $33
+jpnz a, failed
+
+ld a, $37
+rotr a, 4
+sub a, $73
+jpnz a, failed
+
+
+jp succeeded
+
+byte1:
+ .byte $77
+ .byte $87
+ .byte $97
+ .byte $A7
+byte2:
+ .byte byte1
+ .byte byte1+1
+ .byte byte1+2
+ .byte byte1+3
+
+succeeded:
+ .byte $F0
+
+ld a, $ee
+ld [OUTPUT], a
+halt
+
+failed:
+ .byte $F0
+
+ld a, $11
+ld [OUTPUT], a
+halt
+
+
