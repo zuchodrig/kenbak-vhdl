@@ -1,5 +1,6 @@
 .org 4
 
+ld a, 0
 ld [OUTPUT], a
 
 ; shifts

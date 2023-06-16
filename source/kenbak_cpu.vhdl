@@ -568,6 +568,7 @@ begin
   --page 22
   KP <= (MR xor not i_reg(6)) and BM and i_reg(7);
   process_ef_pfto : process(cp, rst)
+  -- PF, PT, PO define number to add to P; shifted out to PO, and PO is added to corresponding bit of P
   variable sv_7_1 : std_logic;
   begin
     if rst = '1' then
@@ -576,7 +577,7 @@ begin
      PF <= '0';
     elsif rising_edge(CP) then
      if (not SB xor ST) = '1' then
-       PF <= PF or KP;
+       PF <= PF or KP; -- set when instruction should be skipped by skip instruction
        PT <= (PT and not KP) or SE;
        PO <= PO or SU or SQ;
        sv_7_1 := not SV or i_reg(7) or i_reg(0);
@@ -592,12 +593,12 @@ begin
 
   -- page 23
  
-  WJ <= not ((not SN or i_reg(5) ) and not SB);
+  WJ <= not ((not SN or i_reg(5) ) and not SB); -- == (SN and not i_reg(5)) or SB :  i_reg(5) (alu/load/store, not a jump)
   WK <= ( ( ( i_reg(7) and i_reg(6) and not i_reg(3) and (MR or not i_reg(4)) ) or i_reg(5) )
-          and SN ) or
+          and SN ) or  -- 11xx0xxx: or/and:    (MR or 'or' instruction) ; in case of 'OR' instruction WK=1
          (SQ or SY);
-  WL <= SS or (QE and EN);
-  WD <=  ( WK and w_reg(0)) or (WL and i_reg(0)) or (WJ and SUM) or (BM and i_reg(6));
+  WL <= SS or (QE and EN); --store data previously loaded to I register
+  WD <=  ( WK and w_reg(0)) or (WL and i_reg(0)) or (WJ and SUM) or (BM and i_reg(6)); -- ALU OR is performed here with WK,WJ=1, (w_reg[0] or SUM), where SUM=MR
   WT <=  WK or (BM and not i_reg(7)) or WL or WJ; -- error, was phases_t(7)
 
   i2_or_not_i1_or_i0 <= i_reg(2) or not i_reg(1) or i_reg(0);
@@ -808,9 +809,16 @@ begin
       write(L3, string'(" KS data mask: x1 x2 x3 x4 & ut & in_sgn & KS:"));
       write(L3, to_bstring(x1 & x2 & x3 & x4 & ut & in_sgn & KS));
       write(L3, string'(" rs1, not_rs1, rs2, not_rs2:"));
-
       write(L3, to_bstring(process_outputs_RS1 & process_outputs_RS1_not &
         process_outputs_RS2 & process_outputs_RS2_not));
+        
+      write(L3, string'(" PO:"));
+      write(L3, to_char(PO));
+      write(L3, string'(" PT:"));
+      write(L3, to_bstring(PT & PT));
+      write(L3, string'(" PF:"));
+      write(L3, to_bstring(PF & PF));
+        
 	  writeline(output, L3);
       
       write(L3, string'("UT:"));
@@ -853,8 +861,8 @@ begin
       write(L, string'(" go & en & dd & ea & DA & CL:"));
       write(L, to_bstring(go & en & dd & ea & DA & CL ));
       
-      write(L, string'(" WD, WT, JS3A,  JS3B "));
-      write(L, to_bstring( WD & WT & JS3A & JS3B));
+      write(L, string'(" WD, WT, JS3A,  JS3B & WJ & wk: "));
+      write(L, to_bstring( WD & WT & JS3A & JS3B & WJ & WK));
 
 
       --write(L, string'(" js3a "));
@@ -870,10 +878,16 @@ begin
       --write(L, string'(" cm calc all:"));
       --write(L, to_bstring( R & L_reg(0) & CM & T7 ));
 
-
-
-
       writeline(output, L);
+      
+      write(L, string'(" i_reg(7) & i_reg(6) & not i_reg(3) & (MR or not i_reg(4)) "));
+      write(L, to_bstring( i_reg(7) & i_reg(6) & not i_reg(3) & (MR or not i_reg(4))  ));
+      
+      
+      write(L, string'(" (WK and w_reg(0)) & (WL and i_reg(0)) & (WJ and SUM) & (BM and i_reg(6)): "));
+      write(L, to_bstring( ( WK and w_reg(0)) & (WL and i_reg(0)) & (WJ and SUM) & (BM and i_reg(6))  ));
+      writeline(output, L);
+      
 
       --not JW7_temp1 and JW7_temp2       01  keeping  11 loading
 
