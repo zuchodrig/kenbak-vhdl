@@ -1,0 +1,64 @@
+.org 4
+
+ld a,0
+ld [OUTPUT], a
+
+;jump with mark direct
+jm sub22
+sub a, $22
+jpnz a, failed
+
+;jump with mark indirect
+jm [[sub_address33]]
+sub a, $33
+jpnz a, failed
+
+jp succeeded
+
+sub_address11:
+.byte sub11
+
+sub_address33:
+.byte sub33
+
+
+failed2:
+ld a, $11
+ld [OUTPUT], a
+halt
+
+
+sub11:
+  .byte 0
+
+  ld a, $11
+  jp [[sub11]]
+
+sub22:
+  .byte 0
+
+  ld a, $22
+  jp [[sub22]]
+
+sub33:
+  .byte 0
+
+  ld a, $33
+  jp [[sub33]]
+
+failed:
+ .byte $F0
+
+ld a, $11
+ld [OUTPUT], a
+halt
+
+succeeded:
+ .byte $F0
+
+ld a, $ee
+ld [OUTPUT], a
+halt
+
+
+

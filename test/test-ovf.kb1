@@ -1,0 +1,83 @@
+.org 4
+
+start:
+ 
+ld a, 100
+add a, 100
+jm check_C0_V1
+; expects CA=0 OV=1
+
+ld a, 155 ; -100
+add a, 155 ;  -100
+jm check_C1_V1
+; expects CA=1 OV=1
+
+
+ld a, 155 ; -100
+sub a, 100
+; expects CA=0 OV=1 ? wtf web: CA=1 ; cause internally sub A, x is add (256-x) and carry bit is not inverted to reflect op meanin
+;  vhdl good, CA=0
+jm check_C0_V1
+
+
+ld a, 155 ; -100
+add a, 150
+jm check_C1_V1
+; expect CA=1; OV=1
+
+ld a, 8
+sub a, 5
+jm check_C0_V0
+; actually web CA = 1 wtf (OV=0); vhdl CA=0
+
+
+ld a, 5
+sub a, 8
+jm check_C1_V0
+; actual: web emul CA = 0 ; vhdl CA=1
+
+
+ld a, 155  ; (-100)
+add a, 155  ; res= 55; OV=1
+jm check_C1_V1
+
+succeeded:
+ld a,$ee
+ld [OUTPUT], a 
+halt
+
+
+check_C0_V0:
+  .byte 1
+ld b, [A_REG_F]
+sub b, 0
+jpnz b, fail
+jp [[check_C0_V0]]
+
+check_C0_V1:
+  .byte 1
+ld b, [A_REG_F]
+sub b, 1
+jpnz b, fail
+jp [[check_C0_V1]]
+
+check_C1_V0:
+  .byte 1
+ld b, [A_REG_F]
+sub b, 2
+jpnz b, fail
+jp [[check_C1_V0]]
+
+check_C1_V1:
+  .byte 1
+ld b, [A_REG_F]
+sub b, 3
+jpnz b, fail
+jp [[check_C1_V1]]
+
+
+
+ fail:
+ld a,$11
+ld [OUTPUT], a 
+halt

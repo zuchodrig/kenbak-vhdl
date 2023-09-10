@@ -100,24 +100,29 @@ jp failed
 sub b, $7C
 jmnz b, failed
 
+; load immediate
 ld b, $40
 add b, $41
 skip1 0, [B_REG_F] ; expecting overflow
 jm failed
 
+; memory
 ld a, [byte1]
 sub a, $77
 jmnz a, failed
 
+; indirect
 ld a, [[byte2]]
 sub a, $77
 jmnz a, failed
 
+; indexed (with offset)
 ld x, 3
 ld a, [x+byte1]
 sub a, $A7
 jmnz a, failed
 
+; indirect indexed 
 ; instruction unsing indirect indexing mode, [x+[byte2]], can't be compiled using stock bespokeasm 
 ; replace with two .byte instructions below
 ld a, [x+[byte2]]
